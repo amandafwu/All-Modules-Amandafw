@@ -5,27 +5,72 @@ date: "2023-10-03"
 output: html_document
 ---
 
-Challenges for module 10
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+## Module 10 code & challenges
+```{r vervet monkeys}
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/vervet-weights.csv")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+head(d)
+mean(d$weight)
+mu <- 4.9 #is this our null hypothesis?
+x <- d$weight
+m <- mean(x) #mean of sample; is this our alt hypothesis?
+m
+s <- sd(x) #standard deviation of sample
+s
+n <- length(x)
+sem <- s/sqrt(n) #sem of sample
+sem
+
+z <- (m - mu)/sem
+z #the estimated number of standard errors of the mean away from the population mean that our sample falls
+#If we then want to see if z is significant, we need to calculate the probability of seeing a deviation from the mean as high or higher than this by chance.
+p <- 1 - pnorm(z)
+p
+p <- pnorm(z, lower.tail = FALSE)
+p
+#Using T-distribution (has slightly fatter tails?)
+p <- 1 - pt(z, df = n - 1)
+p
+p <- pt(z, df = n - 1, lower.tail = FALSE)
+p
+#R has t.test() to help perform this test easily! 
+t <- t.test(x = x, mu = mu, alternative = "greater") #need to add the data and expected population mean 
+t
+#t.test() can be used to calculate confidence intervals based on t distributions 
+lower <- m - qt(1 - 0.05/2, df = n - 1) * sem
+upper <- m + qt(1 - 0.05/2, df = n - 1) * sem
+ci <- c(lower, upper)
+ci  # by hand
+
+t <- t.test(x = x, mu = mu, alternative = "two.sided")
+ci <- t$conf.int
+ci  # using t test
 ```
 
-## R Markdown
+## Challenge 1
+```{r Challenge 1}
+#Adult lowland woolly monkeys are reported to have an average body weight of 7.2 kilograms. You are working with an isolated population of woolly monkeys from the Peruvian Andes that you think may be a different species from the lowland form, and you collect a sample of 15 weights from adult individuals at that site. From your sample, you calculate a mean of 6.43 kilograms and a standard deviation of 0.98 kilograms.
+#Perform a hypothesis test of whether body weights in your population are different from the reported average for lowland woolly monkeys by setting up a “two-tailed” hypothesis, carrying out the analysis, and interpreting the p value (assume the significance level is α =0.05). Your sample is < 30, so you should use the t distribution and do a t test. Do your calculations both by hand and using the t.test() function and confirm that they match.
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall21/woolly-weights.csv")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE) #getting data into R again
+head(d) 
+x <- d$weight #doing everything from before with the vervet monkey data
+m <- mean(x)
+s <- sd(x)
+n <- length(x)
+sem <- s/sqrt(n)
+mu <- 7.2
+t <- (m - mu)/sem #what is T again? 
+t
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+alpha <- 0.05
+crit <- qt(1 - alpha/2, df = n - 1)  # identify critical values
+test <- t < -crit || t > crit  # boolean test as to whether t is larger than the critical value at either tail
+test <- abs(t) > crit
+t.test(x = x, mu = mu, alternative = "two.sided")
 ```
+Comparing vervet monkeys vs wooly monkeys, wooly has a larger mean but a different message for the alt hypothesis; not sure what it means "true mean is not equal to 7.2"
 
-## Including Plots
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
