@@ -5,6 +5,9 @@ date: "2023-10-03"
 output: html_document
 ---
 
+
+
+
 ## Module 10 code & challenges
 ```{r vervet monkeys}
 f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/vervet-weights.csv")
@@ -71,6 +74,159 @@ test <- abs(t) > crit
 t.test(x = x, mu = mu, alternative = "two.sided")
 ```
 Comparing vervet monkeys vs wooly monkeys, wooly has a larger mean but a different message for the alt hypothesis; not sure what it means "true mean is not equal to 7.2"
+
+## Challenge 2: Welch's Test
+```{r Challenge 2}
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/colobus-weights.csv")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+head(d)
+x <- d$weight[d$sex == "male"]
+y <- d$weight[d$sex == "female"]
+par(mfrow = c(1, 2))
+boxplot(x, ylim = c(4.5, 8), main = "Weight (kg)", xlab = "Males")
+boxplot(y, ylim = c(4.5, 8), main = "Weight (kg)", xlab = "Females")
+m1 <- mean(x)
+m2 <- mean(y)
+mu <- 0  # you could leave this out... the default argument value is 0
+s1 <- sd(x)
+s2 <- sd(y)
+n1 <- length(x)
+n2 <- length(y)
+#t statistic
+t <- (m2 - m1 - mu)/sqrt(s2^2/n2 + s1^2/n1)
+t
+alpha <- 0.05
+crit <- qt(1 - alpha/2, df = n - 1)  # identify critical values
+crit
+test <- t < -crit || t > crit  # boolean test
+test <- abs(t) > crit
+test
+#what is this ??
+df <- (s2^2/n2 + s1^2/n1)^2/((s2^2/n2)^2/(n2 - 1) + (s1^2/n1)^2/(n1 - 1))
+df
+#t test
+t <- t.test(x = x, y = y, mu = 0, alternative = "two.sided")
+t
+#Samples with equal variance
+s <- sqrt((((n1 - 1) * s1^2) + ((n2 - 1) * s2^2))/(n1 + n2 - 2))
+t <- (m2 - m1 - mu)/(sqrt(s^2 * (1/n1 + 1/n2)))
+t
+df <- n1 + n2 - 2
+df
+t <- t.test(x = x, y = y, mu = 0, var.equal = TRUE, alternative = "two.sided")
+t
+
+var(x)/var(y)
+vt <- var.test(x, y)
+vt
+```
+
+## Challenge 3
+```{r Challenge 3}
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/iqs.csv")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+head(d)
+x <- d$IQ.before - d$IQ.after
+m <- mean(x)
+mu <- 0  # can leave this out
+s <- sd(x)
+n <- length(x)
+sem <- s/sqrt(n)
+par(mfrow = c(1, 2))
+boxplot(d$IQ.before, ylim = c(115, 145), main = "IQ", xlab = "Before")
+boxplot(d$IQ.after, ylim = c(115, 145), main = "IQ", xlab = "After")
+t <- (m - mu)/sem
+t
+alpha <- 0.05
+crit <- qt(1 - alpha/2, df = n - 1)  # identify critical values
+crit
+test <- t < -crit || t > crit  # boolean test
+test
+t.test(x, df = n - 1, alternative = "two.sided")
+```
+
+## One Sample Z Test
+```{r code}
+pop <- c(rep(0, 500), rep(1, 500))
+pi <- 0.5
+x <- NULL
+n <- 10
+for (i in 1:1000) {
+    x[i] <- mean(sample(pop, size = n, replace = FALSE))  # taking the mean of a bunch of 0s and 1s yields the proportion of 1s!
+}
+m <- mean(x)
+m
+s <- sd(x)
+s
+pop_se <- sqrt(pi * (1 - pi)/n)
+pop_se  # the se is an estimate of the sd of the sampling distribution
+pop <- c(rep(0, 800), rep(1, 200))
+pi <- 0.8
+x <- NULL
+n <- 10
+for (i in 1:1000) {
+    x[i] <- mean(sample(pop, size = n, replace = FALSE))  # taking the mean of a bunch of 0s and 1s yields the proportion of 1s!
+}
+m <- mean(x)
+m
+s <- sd(x)
+s
+pop_se <- sqrt(pi * (1 - pi)/n)
+pop_se  # the se is an estimate of the sd of the sampling distribution
+```
+
+
+## Challenge 4
+```{r Challenge 4} 
+#A neotropical ornithologist working in the western Amazon deploys 30 mist nets in a 100 hectare (ha) grid. She monitors the nets on one morning and records whether or not she captures any birds in the net (i.e., a “success” or “failure” for every net during a netting session). The following vector summarizes her netting results:
+v <- c(0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0,
+    1, 1, 0, 1, 0, 1, 1)
+phat <- mean(v)
+phat
+pi <- 0.8
+n <- 30
+z <- (phat - pi)/sqrt(pi * (1 - pi)/30)
+z
+p <- pnorm(z, lower.tail = TRUE)
+p
+lower <- phat - qnorm(0.975) * sqrt(phat * (1 - phat)/30)
+upper <- phat + qnorm(0.975) * sqrt(phat * (1 - phat)/30)
+ci <- c(lower, upper)
+ci
+pt <- prop.test(x = sum(v), n = length(v), p = 0.8, conf.level = 0.95, correct = FALSE,
+    alternative = "less")
+pt
+```
+
+
+## Challenge 5
+```{r Challenge 5}
+v1 <- c(1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0,
+    1, 0)
+v2 <- c(1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0,
+    0, 1, 1, 0, 1, 1, 1)
+pstar <- (sum(v1) + sum(v2))/(length(v1) + length(v2))
+pstar
+phat1 <- mean(v1)
+phat1
+phat2 <- mean(v2)
+phat2
+pi <- 0
+z <- (phat2 - phat1)/sqrt((pstar * (1 - pstar)) * (1/length(v1) + 1/length(v2)))
+z
+p <- 1 - pnorm(z, lower.tail = TRUE) + pnorm(z, lower.tail = FALSE)
+p
+crit <- qnorm(1 - alpha/2)  # identify critical values
+crit
+test <- p < -crit || p > crit  # boolean test
+test
+pt <- prop.test(x = c(sum(v2), sum(v1)), n = c(length(v2), length(v1)), alternative = "two.sided",
+    correct = FALSE)
+pt
+```
+
+
+
 
 
 
