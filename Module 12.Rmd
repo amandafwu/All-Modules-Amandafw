@@ -1,0 +1,45 @@
+---
+title: "Module 12"
+author: "Amanda Wu"
+date: "2023-10-12"
+output: html_document
+---
+
+```{r}
+library(curl)
+library(ggplot2)
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/zombies.csv")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+head(d)
+plot(data = d, height ~ weight)
+```
+## Challenge 1
+```{r Challenge 1}
+#What is the covariance between zombie survivor weight and zombie survivor height? What does it mean if the covariance is positive versus negative? Does it matter if you switch the order of the two variables?
+
+w <- d$weight
+h <- d$height
+n <- length(w)  # or length(h)
+cov_wh <- sum((w - mean(w)) * (h - mean(h)))/(n - 1)
+cov_wh
+cov(w, h) #cov() will automatically calculate covariance for you 
+```
+
+
+## Challenge 2
+```{r Challenge 2}
+#Calculate the correlation between zombie survivor height and weight.
+
+sd_w <- sd(w)
+sd_h <- sd(h)
+cor_wh <- cov_wh/(sd_w * sd_h)
+cor_wh
+#or
+cor(w, h)
+cor(w, h, method = "pearson")
+cor(w, h, method = "spearman")
+cor(w, h, method = "kendall")
+```
+
+
+
