@@ -1,0 +1,83 @@
+---
+title: "Module 14"
+author: "Amanda Wu"
+date: "2023-11-02"
+output: html_document
+---
+
+## Categorical Predictors in Regression
+```{r}
+library(curl)
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/zombies.csv")
+z <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = TRUE)
+class(z$gender)
+summary(z$gender)
+plot(z$height ~ z$gender)
+m <- lm(data = z, height ~ gender)
+summary(m)
+levels(z$gender)
+z$gender <- relevel(z$gender, ref = "Male")
+m <- lm(data = z, height ~ gender)
+summary(m)
+p <- 1 - pf(276.9, df1 = 1, df2 = 998)
+p
+z$occupation <- "temp"
+unique(z$major)
+levels(z$major)
+row(data.frame(levels(z$major)))
+z$occupation[row(data.frame(levels(z$major))) %in% c(1, 2, 3, 5, 6, 14, 15,
+    16, 18, 21, 23)] <- "natural science"
+z$occupation[row(data.frame(levels(z$major))) %in% c(7, 8, 12, 17, 19, 22)] <- "logistics"
+z$occupation[row(data.frame(levels(z$major))) %in% c(4, 18, 20)] <- "engineering"
+z$occupation[row(data.frame(levels(z$major))) %in% c(9, 10, 11, 13, 24, 25,
+    26)] <- "other"
+z$occupation <- as.factor(z$occupation)
+levels(z$occupation)
+z$occupation <- relevel(z$occupation, ref = "natural science")
+levels(z$occupation)
+plot(data = z, zombies_killed ~ occupation)
+m <- lm(data = z, zombies_killed ~ occupation)
+summary(m)
+p <- 1 - pf(0.526, df1 = 3, df2 = 996)  # F test
+p
+```
+
+
+## using str() when importing data into R 
+
+
+```{r Challenge 1}
+library(curl)
+library(dplyr)
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall21/gibbon-femurs.csv")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = TRUE)
+d$age <- factor(d$age, levels = c("inf", "juv", "subadult", "adult"))  #this reorders the age levels so that they're in order
+head(d)
+hist(d$femur.length)
+qqnorm(d$femur.length)
+plot(data = d, femur.length ~ age)  # boxplot with medians
+means <- summarise(group_by(d, age), mean(femur.length))  # calculate average by group
+points(1:4, means$`mean(femur.length)`, pch = 4, cex = 1.5)  # add means to plot
+sds <- summarise(group_by(d, age), sd(femur.length))
+max(sds$`sd(femur.length)`)/min(sds$`sd(femur.length)`)  # check that variances are roughly equal (ratio of max/min is <2)
+means.centered <- d$femur.length - means[as.numeric(d$age), 2]  # subtract relevant group mean from each data point
+qqnorm(means.centered$`mean(femur.length)`)  # graphical tests for normality
+par(mfrow = c(2, 2))
+hist(d$femur.length[d$age == "inf"], main = "inf")
+qqnorm(d$femur.length[d$age == "inf"])
+hist(d$femur.length[d$age == "juv"], main = "juv")
+qqnorm(d$femur.length[d$age == "juv"])
+hist(d$femur.length[d$age == "subadult"], main = "subadult")
+qqnorm(d$femur.length[d$age == "subadult"])
+hist(d$femur.length[d$age == "adult"], main = "adult")
+qqnorm(d$femur.length[d$age == "adult"])
+par(mfrow = c(1, 1))
+plot(data = d, femur.length ~ age)
+m <- aov(data = d, femur.length ~ age)  # femur length related to age
+summary(m)
+m <- lm(data = d, femur.length ~ age)
+summary(m)
+```
+
+## notes
+  + When entering variables in anovas, it does matter the order of the variables because the first one will soak up more variance; will lead to an unbalanced design
